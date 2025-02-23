@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { BASE_URL, apiCall, submitMedicalData } from '../config/api';
+import { BASE_URL, endpoints } from '../config/api';
 
 // Register ChartJS components
 ChartJS.register(
@@ -192,29 +192,22 @@ const DynamicQuestions = () => {
   }, [transcript]);
 
   // Fetch medical data first
-  useEffect(() => {
-    const fetchMedicalRecord = async () => {
-      try {
-        const medicalRecordId = localStorage.getItem("medicalRecordId");
-        if (!medicalRecordId) {
-          throw new Error("No medical record ID found");
-        }
-
-        const result = await apiCall(`/api/${medicalRecordId}`);
-        console.log("Fetched medical data:", result.data);
-        setMedicalData(result.data);
-
-        // Only start generating questions after medical data is loaded
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching medical data:", err);
-        setError(err.message);
-        setLoading(false);
+  const fetchMedicalRecord = async () => {
+    try {
+      const medicalRecordId = localStorage.getItem("medicalRecordId");
+      if (!medicalRecordId) {
+        throw new Error("No medical record ID found");
       }
-    };
 
-    fetchMedicalRecord();
-  }, []);
+      const result = await endpoints.getMedicalRecord(medicalRecordId);
+      setMedicalData(result);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching medical data:", err);
+      setError(err.message);
+      setLoading(false);
+    }
+  };
 
   // Add debug logging to the useEffect
   useEffect(() => {
@@ -831,15 +824,13 @@ const DynamicQuestions = () => {
 
     setProcessingResponse(true);
     try {
-      // Format your data
       const formData = {
         question: currentQuestion.text,
         response: userResponse,
         questionNumber: currentQuestionNumber
       };
 
-      // Submit the response
-      await submitMedicalData(formData);
+      await endpoints.submitResponse(formData);
 
       // Add current Q&A to conversation
       setConversation((prev) => [

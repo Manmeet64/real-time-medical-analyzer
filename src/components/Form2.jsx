@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Mic } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { BASE_URL, apiCall } from '../config/api';
+import { toast } from 'react-hot-toast';
 
 const MedicalForm = () => {
   const [currentStep, setCurrentStep] = React.useState(0);
@@ -728,102 +730,22 @@ const MedicalForm = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      // Final validation of all data
-      let allErrors = {};
-      for (let i = 0; i < totalSteps; i++) {
-        const stepErrors = validateForm(i);
-        allErrors = { ...allErrors, ...stepErrors };
-      }
-
-      if (Object.keys(allErrors).length > 0) {
-        const errorMessages = Object.values(allErrors).join("\n");
-        alert(errorMessages);
-        return;
-      }
-
-      // Format data for submission
-      const formattedData = {
-        personalInfo: {
-          fullName: formData.personalInfo.fullName.trim(),
-          email: formData.personalInfo.email.toLowerCase().trim(),
-          age: Number(formData.personalInfo.age),
-          gender: formData.personalInfo.gender.toLowerCase(),
-          height: Number(formData.personalInfo.height),
-          weight: Number(formData.personalInfo.weight),
-        },
-        lifestyle: {
-          smoking: formData.lifestyle.smoking.toLowerCase(),
-          alcohol: formData.lifestyle.alcohol.toLowerCase(),
-        },
-        medicalHistory: {
-          conditions: Array.isArray(formData.medicalHistory.conditions)
-            ? formData.medicalHistory.conditions
-            : [],
-          medications: {
-            taking: formData.medicalHistory.medications.taking.toLowerCase(),
-            list: formData.medicalHistory.medications.list.trim(),
-          },
-        },
-      };
-
-      console.log("Submitting formatted data:", formattedData);
-
-      const response = await fetch("http://localhost:3000/api/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formattedData),
+      const response = await apiCall('/api/medical-records', {
+        method: 'POST',
+        body: JSON.stringify(formData)
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
+      if (response.id) {
+        localStorage.setItem("medicalRecordId", response.id);
+        toast.success("Medical record created successfully!");
+        navigate("/questions");
       }
-
-      const data = await response.json();
-      console.log("Medical record created:", data);
-
-      // Store the _id in localStorage
-      localStorage.setItem("medicalRecordId", data.data._id);
-
-      // Show success message
-      alert("Medical record created successfully!");
-
-      // Reset form
-      setFormData({
-        personalInfo: {
-          fullName: "",
-          email: "",
-          age: "",
-          gender: "",
-          height: "",
-          weight: "",
-        },
-        lifestyle: {
-          smoking: "",
-          alcohol: "",
-        },
-        medicalHistory: {
-          conditions: [],
-          medications: {
-            taking: "",
-            list: "",
-          },
-        },
-      });
-
-      // Navigate to home page
-      navigate("/questions");
     } catch (error) {
       console.error("Error creating medical record:", error);
-      alert(
-        error.message || "Error creating medical record. Please try again."
-      );
+      toast.error("Failed to create medical record. Please try again.");
     }
   };
 
