@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { BASE_URL } from '../config/api';
+import { BASE_URL, apiCall } from '../config/api';
 
 // Register ChartJS components
 ChartJS.register(
@@ -200,12 +200,7 @@ const DynamicQuestions = () => {
           throw new Error("No medical record ID found");
         }
 
-        const response = await fetch(`${BASE_URL}/api/${medicalRecordId}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch medical data");
-        }
-
-        const result = await response.json();
+        const result = await apiCall(`/api/${medicalRecordId}`);
         console.log("Fetched medical data:", result.data);
         setMedicalData(result.data);
 
