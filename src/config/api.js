@@ -1,0 +1,1 @@
+export const BASE_URL = "https://real-backend-h3n0.onrender.com"; 

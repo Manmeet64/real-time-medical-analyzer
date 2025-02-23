@@ -4,6 +4,7 @@ import MedicalForm from "./Form2";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { BASE_URL } from '../config/api';
 
 const handleAnimationComplete = () => {
     console.log("Animation completed!");
