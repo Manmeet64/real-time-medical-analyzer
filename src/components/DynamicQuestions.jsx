@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { BASE_URL, apiCall } from '../config/api';
+import { BASE_URL, apiCall, submitMedicalData } from '../config/api';
 
 // Register ChartJS components
 ChartJS.register(
@@ -831,6 +831,16 @@ const DynamicQuestions = () => {
 
     setProcessingResponse(true);
     try {
+      // Format your data
+      const formData = {
+        question: currentQuestion.text,
+        response: userResponse,
+        questionNumber: currentQuestionNumber
+      };
+
+      // Submit the response
+      await submitMedicalData(formData);
+
       // Add current Q&A to conversation
       setConversation((prev) => [
         ...prev,
@@ -853,17 +863,15 @@ const DynamicQuestions = () => {
         await generateFinalReport();
         setIsComplete(true);
       } else {
-        // Increment question number and show loading state
         setCurrentQuestionNumber((prev) => prev + 1);
         setCurrentQuestion(null);
         setIsLoadingQuestion(true);
-
-        // Wait before generating next question
         await new Promise((resolve) => setTimeout(resolve, 1500));
         await generateNextQuestion();
       }
     } catch (err) {
       console.error("Error in handleSubmitResponse:", err);
+      toast.error("Failed to submit response. Please try again.");
       setError("An error occurred while processing your response");
     } finally {
       setProcessingResponse(false);
